@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  user:
+    build: ./docker/web
+    volumes:
+      - ./user:/data
+  web:
+    image: nginx:1.20-alpine
+    ports:
+      - 8084:80
+    volumes:
+      - ./user:/data
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    working_dir: /data
+  db:
+      platform: linux/amd64
+      image: mysql:8.0
+      container_name: drp-db
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: drp_db
+        MYSQL_USER: drp_db
+        MYSQL_PASSWORD: drp_db
+        TZ: "Asia/Tokyo"
+      command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      volumes:
+        - ./docker/db/data:/var/lib/mysql
+      ports:
+        - 3336:3306
