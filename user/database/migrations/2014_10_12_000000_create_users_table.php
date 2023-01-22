@@ -15,12 +15,17 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->string('first_name', 20)->comment('名前');
+            $table->string('last_name', 20)->comment('苗字');
+            $table->string('email', 320)->unique()->comment('メールアドレス');
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password', 100)->comment('パスワード');
             $table->rememberToken();
-            $table->timestamps();
+            $table->unsignedTinyInteger('is_active')->default(1)->comment('アクティブ状態');
+
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
+            $table->dateTime('deleted_at')->nullable();
         });
     }
 
