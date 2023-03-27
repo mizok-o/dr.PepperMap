@@ -10,7 +10,6 @@ class PostController extends Controller
      */
     public function index(): array
     {
-        $posts = [];
         return [
         ];
     }
