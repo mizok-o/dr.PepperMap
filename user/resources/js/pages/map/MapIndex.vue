@@ -1,15 +1,23 @@
 <template>
     <div id="map"></div>
+    <div class="test" :class="{ show_popup: showPopup }">
+        <p>{{ title }}</p>
+    </div>
 </template>
 
 <script setup>
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
-  accessToken: String
-})
+    accessToken: String
+});
+
+const map = ref(null);
+const title = ref("");
+const showPopup = ref(false);
+const isItemPosted = ref(false);
 
 onMounted(() => {
     mapboxgl.accessToken = props.accessToken;
@@ -20,37 +28,24 @@ onMounted(() => {
             {
                 'type': 'Feature',
                 'properties': {
-                    'message': 'Foo',
+                    'message': 'dr pepper pink',
                     'iconSize': [44, 44]
                 },
                 'geometry': {
                     'type': 'Point',
-                    'coordinates': [-66.324462, -16.024695]
-                }
-            },
-            {
-                'type': 'Feature',
-                'properties': {
-                    'message': 'Bar',
-                    'iconSize': [44, 44]
-                },
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [-61.21582, -15.971891]
+                    'coordinates': [139.5587711128723, 35.43034530096159]
                 }
             },
         ]
     };
 
-    const map = new mapboxgl.Map({
+    map.value = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v12',
-        center: [-65.017, -16.457],
         zoom: 5,
     });
 
     for (const marker of geojson.features) {
-        // Create a DOM element for each marker.
         const el = document.createElement('div');
         const width = marker.properties.iconSize[0];
         const height = marker.properties.iconSize[1];
@@ -61,36 +56,92 @@ onMounted(() => {
         el.style.backgroundSize = '100%';
 
         el.addEventListener('click', () => {
-            window.alert(marker.properties.message);
+            title.value = marker.properties.message;
+            showPopup.value = true;
         });
 
         new mapboxgl.Marker(el)
             .setLngLat(marker.geometry.coordinates)
-            .addTo(map);
+            .addTo(map.value);
     }
 
-    map.addControl(
-        new mapboxgl.GeolocateControl({
-            positionOptions: {
-                enableHighAccuracy: true
-            },
-            trackUserLocation: true,
-            showUserHeading: true
+    // 地図をクリックしたら投稿処理が始まる
+    map.value.on('click', (event) => postItem(event));
+
+    const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+    });
+    map.value.addControl(geolocate);
+
+    map.value.on('load', function () {
+        geolocate.trigger();
+    });
+
+    map.value.addControl(
+        new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl
         })
     );
 })
-</script>
 
-<style>
-body {
-    margin: 0;
-    padding: 0;
+// click event on the map
+function postItem(event) {
+    if (!window.confirm("アイテムを投稿する")) {
+        return;
+    }
+
+    try {
+        console.log("アイテムを保存しました。");
+        isItemPosted.value = true;
+    } catch (error) {
+        console.error("エラー", error);
+        throw error;
+    }
+
+    // アイテム投稿成功時に地図にアイコンを追加する
+    if (isItemPosted.value) {
+        setPostItemMarker(event);
+    }
 }
 
+// click event on the map
+function setPostItemMarker(event) {
+    // console.log(event);
+    const coordinates = event.lngLat;
+    // console.log(coordinates, map);
+
+    new mapboxgl.Marker().setLngLat(coordinates).addTo(map.value);
+
+    isItemPosted.value = false;
+}
+</script>
+
+<style scoped>
 #map {
     position: absolute;
-    top: 0;
+    top: 10vh;
     bottom: 0;
     width: 100%;
+    height: 90vh;
+}
+
+.test {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 20px;
+    transform: translateY(100%);
+    transition: .3s;
+    background-color: #fff;
+    z-index: 10;
+}
+
+.show_popup {
+    transform: translateY(0);
 }
 </style>

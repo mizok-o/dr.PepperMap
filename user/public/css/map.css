@@ -1,11 +1,1 @@
-body {
-    margin-top: 24px;
-    height: 640px;
-    max-width: 360px;
-}
-
-.map_container {
-    margin: 0;
-    padding: 0;
-}
-
+body{height:640px;margin-top:24px;max-width:360px}.map_container{margin:0;padding:0}
