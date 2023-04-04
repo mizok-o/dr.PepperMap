@@ -6,6 +6,7 @@
 </template>
 
 <script setup>
+import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { onMounted, ref } from 'vue';
@@ -39,11 +40,16 @@ onMounted(() => {
         ]
     };
 
-    map.value = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
+        style: 'mapbox://styles/mapbox/streets-v11',
         zoom: 5,
     });
+
+    const language = new MapboxLanguage();
+    map.addControl(language);
+
+    map.value = map;
 
     for (const marker of geojson.features) {
         const el = document.createElement('div');
@@ -89,7 +95,6 @@ onMounted(() => {
     );
 })
 
-// click event on the map
 function postItem(event) {
     if (!window.confirm("アイテムを投稿する")) {
         return;
@@ -109,14 +114,9 @@ function postItem(event) {
     }
 }
 
-// click event on the map
 function setPostItemMarker(event) {
-    // console.log(event);
     const coordinates = event.lngLat;
-    // console.log(coordinates, map);
-
     new mapboxgl.Marker().setLngLat(coordinates).addTo(map.value);
-
     isItemPosted.value = false;
 }
 </script>
